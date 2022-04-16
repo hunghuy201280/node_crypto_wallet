@@ -1,5 +1,5 @@
 import express from "express";
-
+import logger  from "./utils/logger";
 import cors from "cors";
 
 //routers
@@ -16,5 +16,5 @@ app.get("/", (_, res) => {
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log("App is running on port:" + port);
+  logger.info("App is running on port:" + port);
 });

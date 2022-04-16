@@ -1,4 +1,5 @@
 import Web3 from "web3";
+import logger from "../utils/logger";
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import { RequestHandler } from "express";
 import * as ethers from "ethers";
@@ -26,7 +27,7 @@ export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
       throw "Invalid secret phrase";
     }
   } catch (err: any) {
-    console.log(err);
+    logger.error(err);
     res.status(400).send(new ErrorResponse(err.toString(), 400));
   }
 };
@@ -54,7 +55,7 @@ export const getTokens: RequestHandler = async (req, res) => {
       });
     }
   } catch (err: any) {
-    console.log(err);
+    logger.error(err);
     res.status(400).send(new ErrorResponse(err.toString(), 400));
   }
 };
@@ -62,9 +63,8 @@ export const getTokens: RequestHandler = async (req, res) => {
 export const createWallet: RequestHandler = async (_, res) => {
   try {
     const mnemonic = bip39.generateMnemonic();
-
     let mnemonicWallet = ethers.Wallet.fromMnemonic(mnemonic);
-    console.log(mnemonicWallet.privateKey);
+    logger.info(mnemonicWallet.privateKey);
     const privateKey = mnemonicWallet.privateKey;
     const publicKey = mnemonicWallet.publicKey;
     res.status(201).json(
@@ -74,7 +74,7 @@ export const createWallet: RequestHandler = async (_, res) => {
       })
     );
   } catch (err: any) {
-    console.log(err);
+    logger.error(err);
     res.status(500).send(new ErrorResponse(err.toString(), 500));
   }
 };
