@@ -3,7 +3,7 @@ import logger  from "./utils/logger";
 import cors from "cors";
 
 //routers
-import walletRouter from "./routers/wallet";
+import walletRouter from "./routers/wallet.route";
 const app = express();
 
 app.use(express.json());

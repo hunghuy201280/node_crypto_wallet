@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   importWalletFromPrivateKey,
   createWallet,
-} from "../controllers/wallet";
+} from "../controllers/wallet.controller";
 
 const router = Router();
 

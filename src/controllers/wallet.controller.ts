@@ -19,7 +19,7 @@ export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
     const wallets = await web3.eth.getAccounts();
     if (wallets.length > 0) {
       res.json(
-        new SuccessResponse("success", 201, {
+        new SuccessResponse("success", res.statusCode, {
           wallets,
         })
       );
@@ -28,13 +28,13 @@ export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
     }
   } catch (err: any) {
     logger.error(err);
-    res.status(400).send(new ErrorResponse(err.toString(), 400));
+    res.status(400).send(new ErrorResponse(err.toString(), res.statusCode));
   }
 };
 
 export const getTokens: RequestHandler = async (req, res) => {
   try {
-    const privateKey = req.body.privateKey;
+    const privateKey : string = req.body.privateKey;
 
     const provider = new HDWalletProvider({
       privateKeys: [privateKey],
@@ -45,18 +45,18 @@ export const getTokens: RequestHandler = async (req, res) => {
     const wallets = await web3.eth.getAccounts();
     if (wallets.length > 0) {
       res.json(
-        new SuccessResponse("success", 201, {
+        new SuccessResponse("success", res.statusCode, {
           wallets,
         })
       );
     } else {
-      res.status(400).send({
-        error: "Invalid secret phrase",
-      });
+      res
+        .status(400)
+        .send(new ErrorResponse("Invalid secret phrase", res.statusCode));
     }
   } catch (err: any) {
     logger.error(err);
-    res.status(400).send(new ErrorResponse(err.toString(), 400));
+    res.status(400).send(new ErrorResponse(err.toString(), res.statusCode));
   }
 };
 
@@ -68,13 +68,13 @@ export const createWallet: RequestHandler = async (_, res) => {
     const privateKey = mnemonicWallet.privateKey;
     const publicKey = mnemonicWallet.publicKey;
     res.status(201).json(
-      new SuccessResponse("success", 201, {
+      new SuccessResponse("success", res.statusCode, {
         publicKey,
         privateKey,
       })
     );
   } catch (err: any) {
     logger.error(err);
-    res.status(500).send(new ErrorResponse(err.toString(), 500));
+    res.status(500).send(new ErrorResponse(err.toString(), res.statusCode));
   }
 };
