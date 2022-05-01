@@ -116,7 +116,7 @@ export const importTokens: RequestHandler = async (req, res) => {
   }
 };
 
-export const getAvailableTokens: RequestHandler = async (req, res) => {
+export const getAvailableTokens: RequestHandler = async (_, res) => {
   const tokenRepo = AppDataSource.manager.getRepository(ERC20Token);
   const tokens = await tokenRepo.find();
   res.send(tokens);
