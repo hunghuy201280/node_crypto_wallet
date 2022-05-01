@@ -130,3 +130,5 @@ dist
 .pnp.*
 
 configs/
+
+playground.ts
