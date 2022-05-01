@@ -23,5 +23,6 @@ export default {
   },
   extra: {
     ssl: true,
+    rejectUnauthorized: false,
   },
 } as DataSourceOptions;
