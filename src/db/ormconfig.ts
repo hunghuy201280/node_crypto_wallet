@@ -22,7 +22,8 @@ export default {
     migrationsDir: `dist/migration`,
   },
   extra: {
-    ssl: true,
-    rejectUnauthorized: false,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   },
 } as DataSourceOptions;
