@@ -4,7 +4,7 @@ import { RequestHandler } from "express";
 import * as ethers from "ethers";
 import { ErrorResponse, SuccessResponse } from "../utils/base_response";
 import * as k from "../utils/constants";
-
+import * as bip39 from "bip39";
 export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
   try {
     const privateKey = req.body.privateKey;
@@ -33,9 +33,9 @@ export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
 
 export const createWallet: RequestHandler = async (_, res) => {
   try {
-    // const mnemonic = bip39.generateMnemonic();
-    const mnemonic =
-      "cause almost leaf coast ability mesh oval media marine purse parade chapter";
+    const mnemonic = bip39.generateMnemonic();
+    // const mnemonic =
+    //   "cause almost leaf coast ability mesh oval media marine purse parade chapter";
 
     let wallet = ethers.Wallet.fromMnemonic(mnemonic, `${k.WALLET_PATH}1`);
     const privateKey = wallet.privateKey;
