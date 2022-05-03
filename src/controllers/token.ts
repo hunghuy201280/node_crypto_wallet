@@ -6,7 +6,7 @@ import { AbiItem } from "web3-utils";
 import { AppDataSource } from "../db/db";
 import { ERC20Token } from "../entity/erc20Token";
 import { Wallet } from "../entity/wallet";
-
+import { TokenResponse } from "../types/types";
 const erc20AbiJson = (erc20AbiJsonRaw as any).default as AbiItem[];
 export const getTokens: RequestHandler = async (req, res) => {
   try {
@@ -33,10 +33,7 @@ export const getTokens: RequestHandler = async (req, res) => {
     const web3 = new Web3(
       new Web3.providers.HttpProvider(process.env.RINKEBY as string)
     );
-    const responseJson: {
-      balance: number;
-      symbol: string;
-    }[] = [];
+    const responseJson: TokenResponse[] = [];
 
     for (const token of tokens) {
       const contract = new web3.eth.Contract(erc20AbiJson, token.address);
@@ -45,7 +42,7 @@ export const getTokens: RequestHandler = async (req, res) => {
         .balanceOf(walletAddress)
         .call();
       responseJson.push({
-        symbol: token.symbol,
+        ...token,
         balance: Number(Web3.utils.fromWei(tokenBalance)),
       });
     }
