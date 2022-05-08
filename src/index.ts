@@ -1,10 +1,9 @@
 import express from "express";
-import logger  from "./utils/logger";
 import cors from "cors";
 
 //routers
-import walletRouter from "./routers/wallet";
 import tokenRouter from "./routers/token";
+import walletRouter from "./routers/wallet.route";
 import { AppDataSource } from "./db/db";
 const app = express();
 
