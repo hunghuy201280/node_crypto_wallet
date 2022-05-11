@@ -12,20 +12,17 @@ export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
     const provider = new HDWalletProvider({
       privateKeys: [privateKey],
       providerOrUrl: process.env.RINKEBY,
+      numberOfAddresses: 1,
+      derivationPath: `${k.WALLET_PATH}1`,
     });
-    const web3 = new Web3();
-    web3.setProvider(provider);
-    const wallets = await web3.eth.getAccounts();
-    if (wallets.length > 0) {
-      res.json(
-        new SuccessResponse("success", 201, {
-          address: wallets,
-          privateKey,
-        })
-      );
-    } else {
-      throw "Invalid secret phrase";
-    }
+    const wallet = provider.getAddress();
+
+    return res.json(
+      new SuccessResponse("success", 201, {
+        address: wallet,
+        privateKey,
+      })
+    );
   } catch (err: any) {
     console.log(err);
     res.status(400).send(new ErrorResponse(err.toString(), 400));
@@ -57,31 +54,29 @@ export const createWallet: RequestHandler = async (_, res) => {
   }
 };
 
-export const importWalletFromMnemonic: RequestHandler = async  (req, res) => {
+export const importWalletFromMnemonic: RequestHandler = async (req, res) => {
   try {
-    const { mnemonic } = req.body;
-    var words = mnemonic.trim().split(" ");
-    if (words.length == 12 || words.length == 24) {
-      // validate mnemonic
-      if (!bip39.validateMnemonic(mnemonic)) {
-        throw new Error("Mnemonic invalid or undefined");
-      }
-      const wallet = ethers.Wallet.fromMnemonic(mnemonic, `${k.WALLET_PATH}1`);
-      let privateKey = wallet.privateKey;
-      let address = wallet.address;
-      return res.status(201).json(
-        new SuccessResponse("success", 201, {
-          mnemonic,
-          wallet: {
-            address,
-            privateKey,
-          },
-        })
-      );
-    } else
-      throw new Error("Mnemonic words length must be 12 or 24 words");
+    let { mnemonic } = req.body;
+    mnemonic = mnemonic.trim()
+    if (!bip39.validateMnemonic(mnemonic)) {
+      throw new Error("Mnemonic invalid or undefined");
+    }
+    const wallet = ethers.Wallet.fromMnemonic(mnemonic, `${k.WALLET_PATH}1`);
+    let privateKey = wallet.privateKey;
+    let address = wallet.address;
+    return res.status(201).json(
+      new SuccessResponse("success", 201, {
+        mnemonic,
+        wallet: {
+          address,
+          privateKey,
+        },
+      })
+    );
   } catch (err: any) {
     console.log(err);
-    return res.status(400).send(new ErrorResponse(err.toString(), res.statusCode));
+    return res
+      .status(400)
+      .send(new ErrorResponse(err.toString(), res.statusCode));
   }
 };
