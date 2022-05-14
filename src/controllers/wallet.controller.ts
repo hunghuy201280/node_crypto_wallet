@@ -25,7 +25,7 @@ export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
     );
   } catch (err: any) {
     console.log(err);
-    res.status(400).send(new ErrorResponse(err.toString(), 400));
+    res.status(400).send(new ErrorResponse(err.message, 400));
   }
 };
 
@@ -50,7 +50,7 @@ export const createWallet: RequestHandler = async (_, res) => {
     );
   } catch (err: any) {
     console.log(err);
-    res.status(500).send(new ErrorResponse(err.toString(), 500));
+    res.status(500).send(new ErrorResponse(err.message, 500));
   }
 };
 
@@ -77,6 +77,6 @@ export const importWalletFromMnemonic: RequestHandler = async (req, res) => {
     console.log(err);
     return res
       .status(400)
-      .send(new ErrorResponse(err.toString(), res.statusCode));
+      .send(new ErrorResponse(err.message, res.statusCode));
   }
 };

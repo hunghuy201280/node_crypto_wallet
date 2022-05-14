@@ -3,7 +3,7 @@ import {
   getAvailableTokens,
   getTokens,
   importTokens,
-} from "../controllers/token";
+} from "../controllers/token.controller";
 
 const router = Router();
 

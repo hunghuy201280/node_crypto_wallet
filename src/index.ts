@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 
 //routers
-import tokenRouter from "./routers/token";
+import tokenRouter from "./routers/token.route";
 import walletRouter from "./routers/wallet.route";
 import { AppDataSource } from "./db/db";
 const app = express();
