@@ -23,6 +23,6 @@ AppDataSource.initialize()
       console.log("App is running on port:" + port);
     });
   })
-  .catch((e : any) => {
+  .catch((e: any) => {
     console.log("Can't connect to database with error: " + e);
   });

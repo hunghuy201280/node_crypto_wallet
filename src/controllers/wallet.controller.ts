@@ -1,4 +1,3 @@
-import Web3 from "web3";
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import { RequestHandler } from "express";
 import * as ethers from "ethers";
@@ -17,7 +16,7 @@ export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
     });
     const wallet = provider.getAddress();
 
-    return res.json(
+    res.json(
       new SuccessResponse("success", 201, {
         address: wallet,
         privateKey,
@@ -57,7 +56,7 @@ export const createWallet: RequestHandler = async (_, res) => {
 export const importWalletFromMnemonic: RequestHandler = async (req, res) => {
   try {
     let { mnemonic } = req.body;
-    mnemonic = mnemonic.trim()
+    mnemonic = mnemonic.trim();
     if (!bip39.validateMnemonic(mnemonic)) {
       throw new Error("Mnemonic invalid or undefined");
     }
