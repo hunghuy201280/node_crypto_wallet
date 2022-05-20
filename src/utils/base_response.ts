@@ -1,6 +1,7 @@
 export interface BaseResponse {
   message: string;
   statusCode: number;
+  error : boolean;
 }
 
 /**
@@ -11,11 +12,13 @@ export interface BaseResponse {
  * @param   {number} statusCode
  */
 export class SuccessResponse implements BaseResponse {
+  public error: false = false;
   constructor(
     public message: string,
     public statusCode: number,
     public result: object
   ) {}
+  
 }
 
 /**
