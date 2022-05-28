@@ -13,7 +13,6 @@ import { ethers, BigNumber } from "ethers";
 import JSBI from "jsbi";
 import { getWeb3Instance } from "../utils/utils";
 import { V3_SWAP_ROUTER_ADDRESS } from "../utils/constants";
-import log from "../utils/logger";
 
 const erc20AbiJson = (erc20AbiJsonRaw as any).default as AbiItem[];
 
