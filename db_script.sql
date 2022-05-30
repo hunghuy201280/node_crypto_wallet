@@ -46,7 +46,9 @@ select * from wallet_tokens_erc20_token
 -- SELECT "Wallet_tokens_rid"."walletId" AS "walletId", "Wallet_tokens_rid"."eRC20TokenId" AS "eRC20TokenId" FROM "ERC20Token" "ERC20Token" INNER JOIN "wallet_tokens_erc20_token" "Wallet_tokens_rid" ON ("Wallet_tokens_rid"."walletId" = $1 AND "Wallet_tokens_rid"."eRC20TokenId" = "ERC20Token"."id") ORDER BY "Wallet_tokens_rid"."eRC20TokenId" ASC, "Wallet_tokens_rid"."walletId" ASC
 
 
+-- select "Wallet__Wallet_tokens".decimal from "ERC20Token" "Wallet__Wallet_tokens"
+-- update  "ERC20Token" set "token_decimal" = 18
+-- alter table "ERC20Token" rename column decimal to "decimal"
+-- alter table "ERC20Token" add column "token_decimal" int
 
-
-
-
+-- alter table "ERC20Token" drop column "decimal"

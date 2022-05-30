@@ -10,7 +10,7 @@ export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
 
     const provider = new HDWalletProvider({
       privateKeys: [privateKey],
-      providerOrUrl: process.env.RINKEBY,
+      providerOrUrl: process.env.WEB3_PROVIDER_URL,
       numberOfAddresses: 1,
       derivationPath: `${k.WALLET_PATH}1`,
     });
@@ -74,8 +74,6 @@ export const importWalletFromMnemonic: RequestHandler = async (req, res) => {
     );
   } catch (err: any) {
     console.log(err);
-    return res
-      .status(400)
-      .send(new ErrorResponse(err.message, res.statusCode));
+    return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
   }
 };
