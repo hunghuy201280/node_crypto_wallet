@@ -1,16 +1,18 @@
 import { Router } from "express";
 import {
   getAvailableTokens,
-  getTokens,
-  importTokens,
+  getWalletTokens,
+  importWalletTokens,
+  importAvailableTokens,
   swapToken,
 } from "../controllers/token.controller";
 
 const router = Router();
 
-router.get("/", getTokens);
-router.post("/import_token", importTokens);
+router.get("/", getWalletTokens);
+router.post("/import_token", importWalletTokens);
 router.post("/swap", swapToken);
-router.post("/test", getAvailableTokens);
+router.get("/available_tokens", getAvailableTokens);
+router.post("/import_available_tokens", importAvailableTokens);
 
 export default router;
