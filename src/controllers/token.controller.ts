@@ -119,7 +119,7 @@ export const importWalletTokens: RequestHandler = async (req, res) => {
       throw "Invalid token";
     }
 
-    res.status(201).send(new SuccessResponse("Added",res.statusCode, {}));
+    res.status(201).send(new SuccessResponse("Added", res.statusCode, {}));
   } catch (err: any) {
     console.log(err);
     res.status(400).send(new ErrorResponse(err.toString(), res.statusCode));
@@ -127,43 +127,87 @@ export const importWalletTokens: RequestHandler = async (req, res) => {
 };
 
 export const getAvailableTokens: RequestHandler = async (_, res) => {
-  try{
+  try {
     const tokenRepo = AppDataSource.manager.getRepository(ERC20Token);
     const tokens = await tokenRepo.find();
-    res.status(200).send(new SuccessResponse("Get Tokens Success",res.statusCode,tokens));
-  }
-  catch(e : any) {
+    res
+      .status(200)
+      .send(new SuccessResponse("Get Tokens Success", res.statusCode, tokens));
+  } catch (e: any) {
     log.error(e);
-    res.status(400).send(new ErrorResponse('Get Tokens Failure',res.statusCode));
+    res
+      .status(400)
+      .send(new ErrorResponse("Get Tokens Failure", res.statusCode));
   }
 };
 
 export const importAvailableTokens: RequestHandler = async (req, res) => {
-  try{
+  try {
     const tokenAddresses = req.body;
     const tokenRepo = AppDataSource.manager.getRepository(ERC20Token);
     const web3 = new Web3(
       new Web3.providers.HttpProvider(process.env.WEB3_PROVIDER_URL as string)
     );
-    for(let tokenAddress of tokenAddresses) {
-      let token = await tokenRepo.findOneBy({address : tokenAddress});
-      if(!token && web3.utils.isAddress(tokenAddress)) {
-        const contract = new web3.eth.Contract(erc20AbiJson, tokenAddress);
-        const symbol = await contract.methods.symbol().call();
-        const decimals = await contract.methods.decimals().call();
-        token = new ERC20Token();
-        token.address = tokenAddress;
-        token.symbol = symbol;
-        token.demical = decimals;
-        await tokenRepo.save(token);
+    for (let tokenAddress of tokenAddresses) {
+      try {
+        let token = await tokenRepo.findOneBy({ address: tokenAddress });
+        if (!token && web3.utils.isAddress(tokenAddress, +process.env.CHAIN_ID!)) {
+          const contract = new web3.eth.Contract(erc20AbiJson, tokenAddress);
+          const symbol = await contract.methods.symbol().call();
+          const decimals = await contract.methods.decimals().call();
+          token = new ERC20Token();
+          token.address = tokenAddress;
+          token.symbol = symbol;
+          token.demical = decimals;
+          await tokenRepo.save(token);
+        }
+      } catch (e: any) {
+        log.error(e);
       }
     }
-    const tokens = await tokenRepo.find({where :{ address : In(tokenAddresses)} });
-    res.status(200).send(new SuccessResponse("Import Tokens Success",res.statusCode,tokens));
-  }
-  catch(e : any) {
+    const tokens = await tokenRepo.find({
+      where: { address: In(tokenAddresses) },
+    });
+    res
+      .status(200)
+      .send(
+        new SuccessResponse("Import Tokens Success", res.statusCode, tokens)
+      );
+  } catch (e: any) {
     log.error(e);
-    res.status(400).send(new ErrorResponse('Import Tokens Failure',res.statusCode));
+    res
+      .status(400)
+      .send(new ErrorResponse("Import Tokens Failure", res.statusCode));
+  }
+};
+
+export const getDetailOfToken: RequestHandler = async  (req, res) => {
+  try {
+    const { tokenAddress } = req.params;
+    const tokenRepo = AppDataSource.manager.getRepository(ERC20Token);
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider(process.env.WEB3_PROVIDER_URL as string)
+    );
+    let token = await tokenRepo.findOneBy({ address: tokenAddress });
+    if(token)  return res.status(200).send(new SuccessResponse("Get Detail Token Success", res.statusCode, token));
+    if (web3.utils.isAddress(tokenAddress, +process.env.CHAIN_ID!)) {
+      const contract = new web3.eth.Contract(erc20AbiJson, tokenAddress);
+      const symbol = await contract.methods.symbol().call();
+      const decimals = await contract.methods.decimals().call();
+      token = new ERC20Token();
+      token.address = tokenAddress;
+      token.symbol = symbol;
+      token.demical = decimals;
+      await tokenRepo.save(token);
+      return res.status(200).send(new SuccessResponse("Get Detail Token Success", res.statusCode, token));
+    }
+    else throw Error("Token isn't valid")
+      
+  } catch (e: any) {
+    log.error(e);
+    res
+      .status(400)
+      .send(new ErrorResponse("Token isn't valid", res.statusCode));
   }
 };
 
@@ -302,6 +346,3 @@ export const swapToken: RequestHandler = async (req, res) => {
     res.status(400).send(new ErrorResponse(error.toString(), 400));
   }
 };
-
-
-

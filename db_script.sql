@@ -9,17 +9,6 @@ CREATE TABLE "ERC20Token" (
 --drop table "ERC20Token"
 
 
-INSERT INTO "ERC20Token" (address,symbol,image_url)	VALUES('0xddea378A6dDC8AfeC82C36E9b0078826bf9e68B6','ZRX','https://s2.coinmarketcap.com/static/img/coins/200x200/1896.png');
-	
-INSERT INTO "ERC20Token" (address,symbol,image_url)	VALUES('0x4DBCdF9B62e891a7cec5A2568C3F4FAF9E8Abe2b','USDC','https://s2.coinmarketcap.com/static/img/coins/200x200/3408.png');
-
-INSERT INTO "ERC20Token" (address,symbol,image_url)	VALUES('0xbF7A7169562078c96f0eC1A8aFD6aE50f12e5A99','BAT','https://s2.coinmarketcap.com/static/img/coins/64x64/1697.png');
-
-INSERT INTO "ERC20Token" (address,symbol,image_url)	VALUES('0xD9BA894E0097f8cC2BBc9D24D308b98e36dc6D02','USDT','https://s2.coinmarketcap.com/static/img/coins/64x64/825.png');
-
-INSERT INTO "ERC20Token" (address,symbol,image_url)	VALUES('0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa','DAI','https://s2.coinmarketcap.com/static/img/coins/64x64/4943.png');
-
-
 select * from "ERC20Token"
 
 
