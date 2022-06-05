@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import Web3 from "web3";
 import { ErrorResponse, SuccessResponse } from "../utils/base_response";
 import * as erc20AbiJsonRaw from "../utils/erc20.abi.json";
+import * as bep20AbiJsonRaw from "../utils/bep20.abi.json"
 import { AbiItem } from "web3-utils";
 import { AppDataSource } from "../db/db";
 import { ERC20Token } from "../entity/erc20Token";
@@ -15,46 +16,37 @@ import { getWeb3Instance } from "../utils/utils";
 import { V3_SWAP_ROUTER_ADDRESS } from "../utils/constants";
 import log from "../utils/logger";
 import { In } from "typeorm";
+import { token } from "morgan";
 
 const erc20AbiJson = (erc20AbiJsonRaw as any).default as AbiItem[];
+const bep20AbiJson = (bep20AbiJsonRaw as any).default as AbiItem[];
 
 export const getWalletTokens: RequestHandler = async (req, res) => {
   try {
-    const walletAddress = req.query.address as string;
-    if (!Web3.utils.isAddress(walletAddress)) {
+    let { address , tokenArray  } = req.query;
+    let tokens : string[] = []
+    if (tokenArray) tokens = tokenArray.toString().split(",");
+    if (!Web3.utils.isAddress(address?.toString() ?? '',+process.env.CHAIN_ID!)) {
       throw "Invalid wallet address";
     }
 
-    const walletRepo = AppDataSource.getRepository(Wallet);
-
-    let wallet = await walletRepo.findOne({
-      where: {
-        address: walletAddress,
-      },
-      relations: ["tokens"],
-    });
-    //Add wallet to db if doesnt exist
-    if (!wallet) {
-      wallet = new Wallet();
-      wallet.address = walletAddress;
-      await walletRepo.save(wallet);
-    }
-    const tokens = wallet.tokens ?? [];
     const web3 = new Web3(
       new Web3.providers.HttpProvider(process.env.WEB3_PROVIDER_URL as string)
     );
     const responseJson: TokenResponse[] = [];
 
     for (const token of tokens) {
-      const contract = new web3.eth.Contract(erc20AbiJson, token.address);
+      try {
+        const contract = new web3.eth.Contract(erc20AbiJson, token);
 
-      const tokenBalance = await contract.methods
-        .balanceOf(walletAddress)
-        .call();
-      responseJson.push({
-        ...token,
-        balance: Number(Web3.utils.fromWei(tokenBalance)),
-      });
+        const tokenBalance = await contract.methods.balanceOf(address).call();
+        responseJson.push({
+          address : token,
+          balance: Number(Web3.utils.fromWei(tokenBalance)),
+        });
+      } catch (e) {
+        log.error(e);
+      }
     }
     res.send(new SuccessResponse("success", 200, responseJson));
   } catch (err: any) {
@@ -151,7 +143,10 @@ export const importAvailableTokens: RequestHandler = async (req, res) => {
     for (let tokenAddress of tokenAddresses) {
       try {
         let token = await tokenRepo.findOneBy({ address: tokenAddress });
-        if (!token && web3.utils.isAddress(tokenAddress, +process.env.CHAIN_ID!)) {
+        if (
+          !token &&
+          web3.utils.isAddress(tokenAddress, +process.env.CHAIN_ID!)
+        ) {
           const contract = new web3.eth.Contract(erc20AbiJson, tokenAddress);
           const symbol = await contract.methods.symbol().call();
           const decimals = await contract.methods.decimals().call();
@@ -181,7 +176,7 @@ export const importAvailableTokens: RequestHandler = async (req, res) => {
   }
 };
 
-export const getDetailOfToken: RequestHandler = async  (req, res) => {
+export const getDetailOfToken: RequestHandler = async (req, res) => {
   try {
     const { tokenAddress } = req.params;
     const tokenRepo = AppDataSource.manager.getRepository(ERC20Token);
@@ -189,7 +184,12 @@ export const getDetailOfToken: RequestHandler = async  (req, res) => {
       new Web3.providers.HttpProvider(process.env.WEB3_PROVIDER_URL as string)
     );
     let token = await tokenRepo.findOneBy({ address: tokenAddress });
-    if(token)  return res.status(200).send(new SuccessResponse("Get Detail Token Success", res.statusCode, token));
+    if (token)
+      return res
+        .status(200)
+        .send(
+          new SuccessResponse("Get Detail Token Success", res.statusCode, token)
+        );
     if (web3.utils.isAddress(tokenAddress, +process.env.CHAIN_ID!)) {
       const contract = new web3.eth.Contract(erc20AbiJson, tokenAddress);
       const symbol = await contract.methods.symbol().call();
@@ -199,10 +199,12 @@ export const getDetailOfToken: RequestHandler = async  (req, res) => {
       token.symbol = symbol;
       token.demical = decimals;
       await tokenRepo.save(token);
-      return res.status(200).send(new SuccessResponse("Get Detail Token Success", res.statusCode, token));
-    }
-    else throw Error("Token isn't valid")
-      
+      return res
+        .status(200)
+        .send(
+          new SuccessResponse("Get Detail Token Success", res.statusCode, token)
+        );
+    } else throw Error("Token isn't valid");
   } catch (e: any) {
     log.error(e);
     res
