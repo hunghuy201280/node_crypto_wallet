@@ -348,7 +348,7 @@ export const sendToken: RequestHandler = async (req, res) => {
     const tokenRepo = AppDataSource.manager.getRepository(ERC20Token);
 
     const web3 = getWeb3Instance();
-    const contract = new web3.eth.Contract(ERC20AbiJson, tokenAddress);
+    const contract = new web3.eth.Contract(bep20AbiJson, tokenAddress);
     let token = await tokenRepo.findOneBy({
       address: tokenAddress,
     });
