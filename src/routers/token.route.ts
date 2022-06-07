@@ -6,6 +6,7 @@ import {
   importAvailableTokens,
   swapToken,
   getDetailOfToken,
+  sendToken,
 } from "../controllers/token.controller";
 
 const router = Router();
@@ -16,5 +17,6 @@ router.post("/import_token", importWalletTokens);
 router.post("/swap", swapToken);
 router.get("/available_tokens", getAvailableTokens);
 router.post("/import_available_tokens", importAvailableTokens);
+router.post("/sendToken", sendToken);
 
 export default router;

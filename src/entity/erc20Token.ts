@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Transaction } from "./transaction";
 
 @Entity({
   name: "ERC20Token",
@@ -22,4 +23,7 @@ export class ERC20Token {
     name: "image_url",
   })
   imageUrl: string;
+
+  @OneToMany(() => Transaction, (transaction) => transaction.token)
+  transactions: Transaction[];
 }
