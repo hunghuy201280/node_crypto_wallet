@@ -1,8 +1,7 @@
 import { RequestHandler } from "express";
 import Web3 from "web3";
 import { ErrorResponse, SuccessResponse } from "../utils/base_response";
-import * as erc20AbiJsonRaw from "../utils/erc20.abi.json";
-import * as bep20AbiJsonRaw from "../utils/bep20.abi.json"
+import * as rpsAbiJsonRaw from "../utils/rps.abi.json";
 import { AbiItem } from "web3-utils";
 import { AppDataSource } from "../db/db";
 import { ERC20Token } from "../entity/erc20Token";
@@ -12,37 +11,36 @@ import { AlphaRouter, ChainId } from "@uniswap/smart-order-router";
 import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
 import { ethers, BigNumber } from "ethers";
 import JSBI from "jsbi";
-import { getWeb3Instance } from "../utils/utils";
+import { getPriceOfToken, getWeb3Instance } from "../utils/utils";
 import { V3_SWAP_ROUTER_ADDRESS } from "../utils/constants";
 import log from "../utils/logger";
 import { In } from "typeorm";
 import { token } from "morgan";
 
-const erc20AbiJson = (erc20AbiJsonRaw as any).default as AbiItem[];
-const bep20AbiJson = (bep20AbiJsonRaw as any).default as AbiItem[];
+const rpsAbiJson = ((rpsAbiJsonRaw as any).default)['abi'] as AbiItem[];
 
 export const getWalletTokens: RequestHandler = async (req, res) => {
   try {
     let { address , tokenArray  } = req.query;
     let tokens : string[] = []
     if (tokenArray) tokens = tokenArray.toString().split(",");
-    if (!Web3.utils.isAddress(address?.toString() ?? '',+process.env.CHAIN_ID!)) {
+    if (!Web3.utils.isAddress(address?.toString() ?? '',ChainId.POLYGON_MUMBAI)) {
       throw "Invalid wallet address";
     }
 
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(process.env.WEB3_PROVIDER_URL as string)
-    );
+    const web3 = getWeb3Instance()
     const responseJson: TokenResponse[] = [];
 
     for (const token of tokens) {
       try {
-        const contract = new web3.eth.Contract(erc20AbiJson, token);
-
-        const tokenBalance = await contract.methods.balanceOf(address).call();
+        const contract = new web3.eth.Contract(rpsAbiJson, token);
+        const decimals = await contract.methods.decimals().call();
+        let tokenBalance : number = await contract.methods.balanceOf(address).call();
+        tokenBalance = tokenBalance / 10**decimals;
         responseJson.push({
           address : token,
-          balance: Number(Web3.utils.fromWei(tokenBalance)),
+          balance: tokenBalance,
+          amount : await getPriceOfToken(token)
         });
       } catch (e) {
         log.error(e);
@@ -85,7 +83,7 @@ export const importWalletTokens: RequestHandler = async (req, res) => {
       new Web3.providers.HttpProvider(process.env.WEB3_PROVIDER_URL as string)
     );
     try {
-      const contract = new web3.eth.Contract(erc20AbiJson, tokenAddress);
+      const contract = new web3.eth.Contract(rpsAbiJson, tokenAddress);
       let token = await tokenRepo.findOneBy({
         address: tokenAddress,
       });
@@ -145,9 +143,9 @@ export const importAvailableTokens: RequestHandler = async (req, res) => {
         let token = await tokenRepo.findOneBy({ address: tokenAddress });
         if (
           !token &&
-          web3.utils.isAddress(tokenAddress, +process.env.CHAIN_ID!)
+          web3.utils.isAddress(tokenAddress, ChainId.POLYGON_MUMBAI)
         ) {
-          const contract = new web3.eth.Contract(erc20AbiJson, tokenAddress);
+          const contract = new web3.eth.Contract(rpsAbiJson, tokenAddress);
           const symbol = await contract.methods.symbol().call();
           const decimals = await contract.methods.decimals().call();
           token = new ERC20Token();
@@ -190,8 +188,9 @@ export const getDetailOfToken: RequestHandler = async (req, res) => {
         .send(
           new SuccessResponse("Get Detail Token Success", res.statusCode, token)
         );
-    if (web3.utils.isAddress(tokenAddress, +process.env.CHAIN_ID!)) {
-      const contract = new web3.eth.Contract(erc20AbiJson, tokenAddress);
+        
+    if (web3.utils.isAddress(tokenAddress, ChainId.POLYGON_MUMBAI)) {
+      const contract = new web3.eth.Contract(rpsAbiJson, tokenAddress);
       const symbol = await contract.methods.symbol().call();
       const decimals = await contract.methods.decimals().call();
       token = new ERC20Token();
@@ -239,10 +238,10 @@ export const swapToken: RequestHandler = async (req, res) => {
 
     //#region load meta data
     const fromTokenContract = new web3.eth.Contract(
-      erc20AbiJson,
+      rpsAbiJson,
       fromTokenAddress
     );
-    const toTokenContract = new web3.eth.Contract(erc20AbiJson, toTokenAddress);
+    const toTokenContract = new web3.eth.Contract(rpsAbiJson, toTokenAddress);
     const promiseResult = await Promise.all([
       fromTokenContract.methods.decimals().call(),
       fromTokenContract.methods.symbol().call(),
@@ -292,7 +291,7 @@ export const swapToken: RequestHandler = async (req, res) => {
 
     //#region create router
     const alphaRouter = new AlphaRouter({
-      chainId: ChainId.RINKEBY,
+      chainId: ChainId.POLYGON_MUMBAI,
       provider: web3Provider,
     });
     const route = await alphaRouter.route(
@@ -333,7 +332,7 @@ export const swapToken: RequestHandler = async (req, res) => {
       .toString();
     const contract0 = new ethers.Contract(
       fromTokenAddress,
-      (erc20AbiJsonRaw as any).default,
+      (rpsAbiJsonRaw as any).default,
       web3Provider
     );
     await contract0
