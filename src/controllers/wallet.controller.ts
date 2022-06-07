@@ -4,6 +4,8 @@ import * as ethers from "ethers";
 import { ErrorResponse, SuccessResponse } from "../utils/base_response";
 import * as k from "../utils/constants";
 import * as bip39 from "bip39";
+import Web3 from "web3";
+import { getWeb3Instance } from "../utils/utils";
 export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
   try {
     const privateKey = req.body.privateKey;
@@ -77,3 +79,23 @@ export const importWalletFromMnemonic: RequestHandler = async (req, res) => {
     return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
   }
 };
+
+export const getWalletInfo : RequestHandler = async (req,res) => {
+  try {
+    const { address } = req.params;
+    if(!Web3.utils.isAddress(address)) {
+      throw "Invalid wallet address";
+    }
+    const web3 = getWeb3Instance();
+    const balance = await web3.eth.getBalance(address)
+
+    return res.status(200).send(new SuccessResponse('Success', res.statusCode,{
+      'name' : 'BNB',
+      'balance' : Web3.utils.fromWei(balance) ,
+    }));
+    
+  } catch (err: any) {
+    console.log(err);
+    return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
+  }
+}

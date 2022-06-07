@@ -210,7 +210,7 @@ export const getDetailOfToken: RequestHandler = async (req, res) => {
     } else throw Error("Token isn't valid");
   } catch (e: any) {
     log.error(e);
-    res
+    return res
       .status(400)
       .send(new ErrorResponse("Token isn't valid", res.statusCode));
   }
