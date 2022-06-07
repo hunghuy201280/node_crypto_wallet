@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import Web3 from "web3";
 import { ErrorResponse, SuccessResponse } from "../utils/base_response";
 import * as rpsAbiJsonRaw from "../utils/rps.abi.json";
+import * as ERC20AbiJsonRaw from "../utils/bep20.abi.json";
 import { AbiItem } from "web3-utils";
 import { AppDataSource } from "../db/db";
 import { ERC20Token } from "../entity/erc20Token";
@@ -15,32 +16,36 @@ import { getPriceOfToken, getWeb3Instance } from "../utils/utils";
 import { V3_SWAP_ROUTER_ADDRESS } from "../utils/constants";
 import log from "../utils/logger";
 import { In } from "typeorm";
-import { token } from "morgan";
 
-const rpsAbiJson = ((rpsAbiJsonRaw as any).default)['abi'] as AbiItem[];
+const rpsAbiJson = (rpsAbiJsonRaw as any).default["abi"] as AbiItem[];
+const ERC20AbiJson = (ERC20AbiJsonRaw as any).default as AbiItem[];
 
 export const getWalletTokens: RequestHandler = async (req, res) => {
   try {
-    let { address , tokenArray  } = req.query;
-    let tokens : string[] = []
+    let { address, tokenArray } = req.query;
+    let tokens: string[] = [];
     if (tokenArray) tokens = tokenArray.toString().split(",");
-    if (!Web3.utils.isAddress(address?.toString() ?? '',ChainId.POLYGON_MUMBAI)) {
+    if (
+      !Web3.utils.isAddress(address?.toString() ?? "", ChainId.POLYGON_MUMBAI)
+    ) {
       throw "Invalid wallet address";
     }
 
-    const web3 = getWeb3Instance()
+    const web3 = getWeb3Instance();
     const responseJson: TokenResponse[] = [];
 
     for (const token of tokens) {
       try {
         const contract = new web3.eth.Contract(rpsAbiJson, token);
         const decimals = await contract.methods.decimals().call();
-        let tokenBalance : number = await contract.methods.balanceOf(address).call();
-        tokenBalance = tokenBalance / 10**decimals;
+        let tokenBalance: number = await contract.methods
+          .balanceOf(address)
+          .call();
+        tokenBalance = tokenBalance / 10 ** decimals;
         responseJson.push({
-          address : token,
+          address: token,
           balance: tokenBalance,
-          amount : await getPriceOfToken(token)
+          amount: await getPriceOfToken(token),
         });
       } catch (e) {
         log.error(e);
@@ -188,7 +193,7 @@ export const getDetailOfToken: RequestHandler = async (req, res) => {
         .send(
           new SuccessResponse("Get Detail Token Success", res.statusCode, token)
         );
-        
+
     if (web3.utils.isAddress(tokenAddress, ChainId.POLYGON_MUMBAI)) {
       const contract = new web3.eth.Contract(rpsAbiJson, tokenAddress);
       const symbol = await contract.methods.symbol().call();
@@ -235,13 +240,14 @@ export const swapToken: RequestHandler = async (req, res) => {
     const web3Provider = new ethers.providers.JsonRpcProvider(
       process.env.WEB3_PROVIDER_URL
     );
-
+    console.log(ERC20AbiJson);
     //#region load meta data
     const fromTokenContract = new web3.eth.Contract(
-      rpsAbiJson,
+      ERC20AbiJson,
       fromTokenAddress
     );
-    const toTokenContract = new web3.eth.Contract(rpsAbiJson, toTokenAddress);
+
+    const toTokenContract = new web3.eth.Contract(ERC20AbiJson, toTokenAddress);
     const promiseResult = await Promise.all([
       fromTokenContract.methods.decimals().call(),
       fromTokenContract.methods.symbol().call(),
@@ -266,21 +272,21 @@ export const swapToken: RequestHandler = async (req, res) => {
     };
 
     const fromToken = new Token(
-      4,
+      parseInt(process.env.CHAIN_ID!),
       temp.from.address,
       temp.from.decimals,
       temp.from.symbol,
       temp.from.name
     );
     const toToken = new Token(
-      4,
+      parseInt(process.env.CHAIN_ID!),
       temp.to.address,
       temp.to.decimals,
       temp.to.symbol,
       temp.to.name
     );
     //#endregion
-
+    console.log(fromToken, toToken, parseInt(process.env.CHAIN_ID!));
     //#region convert amount
     const wei = ethers.utils.parseUnits(amount.toString(), temp.from.decimals);
     const inputAmount = CurrencyAmount.fromRawAmount(
@@ -291,7 +297,7 @@ export const swapToken: RequestHandler = async (req, res) => {
 
     //#region create router
     const alphaRouter = new AlphaRouter({
-      chainId: ChainId.POLYGON_MUMBAI,
+      chainId: parseInt(process.env.CHAIN_ID!),
       provider: web3Provider,
     });
     const route = await alphaRouter.route(
@@ -300,7 +306,7 @@ export const swapToken: RequestHandler = async (req, res) => {
       TradeType.EXACT_INPUT,
       {
         recipient: walletAddress,
-        slippageTolerance: new Percent(25, 100),
+        slippageTolerance: new Percent(1, 100),
         deadline: Math.floor(Date.now() / 1000 + 1800),
       }
     );
@@ -332,7 +338,7 @@ export const swapToken: RequestHandler = async (req, res) => {
       .toString();
     const contract0 = new ethers.Contract(
       fromTokenAddress,
-      (rpsAbiJsonRaw as any).default,
+      (ERC20AbiJson as any).default,
       web3Provider
     );
     await contract0

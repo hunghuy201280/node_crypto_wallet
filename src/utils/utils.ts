@@ -1,16 +1,15 @@
-import { Percent, Token, TradeType } from "@uniswap/sdk-core";
+import { Token, TradeType } from "@uniswap/sdk-core";
 import * as rpsAbiJsonRaw from "../utils/rps.abi.json";
 import {
   AlphaRouter,
   ChainId,
   CurrencyAmount,
-  TokenProvider,
 } from "@uniswap/smart-order-router";
 import JSBI from "jsbi";
 import Web3 from "web3";
-import { Contract, ethers } from "ethers";
+import { ethers } from "ethers";
 import { AbiItem } from "web3-utils";
-const rpsAbiJson = ((rpsAbiJsonRaw as any).default)['abi'] as AbiItem[];
+const rpsAbiJson = (rpsAbiJsonRaw as any).default["abi"] as AbiItem[];
 export const getWeb3Instance = (): Web3 => {
   const web3 = new Web3(
     new Web3.providers.HttpProvider(process.env.WEB3_PROVIDER_URL as string)
@@ -31,11 +30,11 @@ export const getPriceOfToken = async (address: string): Promise<number> => {
   try {
     const fromTokenAddress = address;
     const toTokenAddress = "0x3813e82e6f7098b9583FC0F33a962D02018B6803";
-    const web3 = getWeb3Instance()
+    const web3 = getWeb3Instance();
     const provider = new ethers.providers.JsonRpcProvider(
       process.env.SUB_PROVIDER_URL as string
     );
-  
+
     //#region load meta data
     const fromTokenContract = new web3.eth.Contract(
       rpsAbiJson,
@@ -56,24 +55,27 @@ export const getPriceOfToken = async (address: string): Promise<number> => {
         address: toTokenAddress,
       },
     };
-  
+
     const fromToken = new Token(
       ChainId.POLYGON_MUMBAI,
       temp.from.address,
-      temp.from.decimals,
+      temp.from.decimals
     );
     const toToken = new Token(
       ChainId.POLYGON_MUMBAI,
       temp.to.address,
-      temp.to.decimals,
+      temp.to.decimals
     );
     //#endregion
-  
+
     //#region convert amount
     const wei = ethers.utils.parseUnits("1", temp.from.decimals);
-    const inputAmount = CurrencyAmount.fromRawAmount(fromToken, JSBI.BigInt(wei));
+    const inputAmount = CurrencyAmount.fromRawAmount(
+      fromToken,
+      JSBI.BigInt(wei)
+    );
     //#endregion
-  
+
     //#region create router
     const alphaRouter = new AlphaRouter({
       chainId: ChainId.POLYGON_MUMBAI,
@@ -86,9 +88,8 @@ export const getPriceOfToken = async (address: string): Promise<number> => {
     );
     console.log(route);
     return 0;
-  }
-  catch(e : any) {
-    return 0
+  } catch (e: any) {
+    return 0;
   }
   // var number_1 = JSBI.BigInt(sqrtPriceX96 *sqrtPriceX96* (1e(18))/(1e(6))/JSBI.BigInt(2) ** (JSBI.BigInt(192));
 };
