@@ -5,6 +5,7 @@ import morgan from "morgan";
 //routers
 import tokenRouter from "./routers/token.route";
 import walletRouter from "./routers/wallet.route";
+import transactionRouter from "./routers/transaction.route";
 import { AppDataSource } from "./db/db";
 const app = express();
 app.use(morgan("tiny"));
@@ -15,6 +16,7 @@ AppDataSource.initialize()
     app.use(cors());
     app.use("/wallet", walletRouter);
     app.use("/token", tokenRouter);
+    app.use("/transaction", transactionRouter);
 
     app.get("/", (_, res) => {
       res.send("OK");
