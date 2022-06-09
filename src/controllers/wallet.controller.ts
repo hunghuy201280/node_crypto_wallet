@@ -104,10 +104,16 @@ export const getWalletValidAddress : RequestHandler = async (req,res) => {
   try {
     const { address } = req.params;
     
+    if( !Web3.utils.isAddress(address)) {
+      throw 'Address is not valid'  
+    }
+
+    const web3 = getWeb3Instance()
+    const code =await web3.eth.getCode(address) 
     
     return res.status(200).send(new SuccessResponse('Success', res.statusCode,{
       address : address,
-      isValid : Web3.utils.isAddress(address),
+      isValid : code === '0x' ,
     }));
     
     
