@@ -99,3 +99,20 @@ export const getWalletInfo : RequestHandler = async (req,res) => {
     return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
   }
 }
+
+export const getWalletValidAddress : RequestHandler = async (req,res) => {
+  try {
+    const { address } = req.params;
+    
+    
+    return res.status(200).send(new SuccessResponse('Success', res.statusCode,{
+      address : address,
+      isValid : Web3.utils.isAddress(address),
+    }));
+    
+    
+  } catch (err: any) {
+    console.log(err);
+    return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
+  }
+}
