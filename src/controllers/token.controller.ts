@@ -22,10 +22,12 @@ export const getWalletTokens: RequestHandler = async (req, res) => {
   try {
     let { address, tokenArray } = req.query;
     let tokens: string[] = [];
-    if (tokenArray) tokens = tokenArray.toString().split(",").filter(tk => Web3.utils.isAddress(tk ?? "", CHAIN_ID));
-    if (
-      !Web3.utils.isAddress(address?.toString() ?? "", CHAIN_ID)
-    ) {
+    if (tokenArray)
+      tokens = tokenArray
+        .toString()
+        .split(",")
+        .filter((tk) => Web3.utils.isAddress(tk ?? "", CHAIN_ID));
+    if (!Web3.utils.isAddress(address?.toString() ?? "", CHAIN_ID)) {
       throw "Invalid wallet address";
     }
 
@@ -40,7 +42,7 @@ export const getWalletTokens: RequestHandler = async (req, res) => {
           .balanceOf(address)
           .call();
         tokenBalance = tokenBalance / 10 ** decimals;
-        let ratio = await getPriceOfToken(token,tokenBalance)
+        let ratio = await getPriceOfToken(token, tokenBalance);
         responseJson.push({
           address: token,
           balance: tokenBalance,
@@ -145,10 +147,7 @@ export const importAvailableTokens: RequestHandler = async (req, res) => {
     for (let tokenAddress of tokenAddresses) {
       try {
         let token = await tokenRepo.findOneBy({ address: tokenAddress });
-        if (
-          !token &&
-          web3.utils.isAddress(tokenAddress, CHAIN_ID)
-        ) {
+        if (!token && web3.utils.isAddress(tokenAddress, CHAIN_ID)) {
           const contract = new web3.eth.Contract(bep20AbiJson, tokenAddress);
           const symbol = await contract.methods.symbol().call();
           const decimals = await contract.methods.decimals().call();
@@ -265,12 +264,12 @@ export const swapToken: RequestHandler = async (req, res) => {
     const fromToken = new Token(
       parseInt(process.env.CHAIN_ID!),
       temp.from.address,
-      temp.from.decimals,
+      temp.from.decimals
     );
     const toToken = new Token(
       parseInt(process.env.CHAIN_ID!),
       temp.to.address,
-      temp.to.decimals,
+      temp.to.decimals
     );
     //#endregion
     console.log(fromToken, toToken, CHAIN_ID);
@@ -390,5 +389,36 @@ export const sendToken: RequestHandler = async (req, res) => {
     res
       .status(400)
       .send(new ErrorResponse("Import Tokens Failure", res.statusCode));
+  }
+};
+
+export const getValidTokenAddress: RequestHandler = async (req, res) => {
+  try {
+    const { tokenAddress } = req.params;
+
+    if (!Web3.utils.isAddress(tokenAddress)) {
+      throw Error("Address is not valid");
+    }
+    const web3 = getWeb3Instance();
+
+    const contract = new web3.eth.Contract(bep20AbiJson, tokenAddress);
+    const valid = async () => {
+      try {
+        await contract.methods.decimals().call();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    return res.status(200).send(
+      new SuccessResponse("Success", res.statusCode, {
+        address: tokenAddress,
+        isValid: await valid(),
+      })
+    );
+  } catch (err: any) {
+    console.log(err);
+    return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
   }
 };
