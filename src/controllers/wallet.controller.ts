@@ -90,8 +90,10 @@ export const getWalletInfo : RequestHandler = async (req,res) => {
     const balance = await web3.eth.getBalance(address)
 
     return res.status(200).send(new SuccessResponse('Success', res.statusCode,{
-      'name' : 'BNB',
-      'balance' : Web3.utils.fromWei(balance) ,
+      symbol : 'BNB',
+      address : "",
+      decimal : 0,
+      balance : Number(Web3.utils.fromWei(balance)),
     }));
     
   } catch (err: any) {

@@ -400,22 +400,22 @@ export const getValidTokenAddress: RequestHandler = async (req, res) => {
       throw Error("Address is not valid");
     }
     const web3 = getWeb3Instance();
-    
+
     const contract = new web3.eth.Contract(bep20AbiJson, tokenAddress);
-    const valid  = async () => {
+    const valid = async () => {
       try {
         await contract.methods.decimals().call();
         return true;
       } catch (e) {
         return false;
       }
-    }
-  
+    };
+
     return res.status(200).send(
       new SuccessResponse("Success", res.statusCode, {
         address: tokenAddress,
-        isValid: await valid()
-      }
+        isValid: await valid(),
+      })
     );
   } catch (err: any) {
     console.log(err);
