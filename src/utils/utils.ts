@@ -1,17 +1,12 @@
-import { Token, TradeType } from "@uniswap/sdk-core";
 import * as transactionAbiJsonRaw from "../utils/interfaces/transaction.abi.json";
-import * as pancakeSwapFactoryAbiJsonRaw from "../utils/interfaces/pancakeFactory.abi.json";
 import * as pancakeSwapRouteAbiJsonRaw from "../utils/interfaces/pancakeRoute.abi.json";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
-import {
-  PANCAKESWAP_FACTORY_ADDRESS,
-  PANCAKESWAP_ROUTE_ADDRESS,
-} from "./constants";
+import { PANCAKESWAP_ROUTE_ADDRESS } from "./constants";
 import log from "./logger";
 const pancakeSwapRouteAbiJson = (pancakeSwapRouteAbiJsonRaw as any)
   .default as AbiItem[];
-import { Transaction, TransactionReceipt } from "web3-core";
+import { Transaction } from "web3-core";
 import InputDataDecoder from "ethereum-input-data-decoder";
 import { TransactionType } from "../types/enums";
 export const getWeb3Instance = (): Web3 => {
@@ -77,15 +72,17 @@ export const processTransaction = async (
   address: string,
   transaction: Transaction
 ): Promise<Object> => {
-  console.log(transaction)
-  const type = await getTypeOfTransaction(address,transaction);
+  console.log(transaction);
+  const type = await getTypeOfTransaction(address, transaction);
   const web3 = getWeb3Instance();
-  const timestamp = (await web3.eth.getBlock(transaction.blockNumber?.toString() ?? '')).timestamp
+  const timestamp = (
+    await web3.eth.getBlock(transaction.blockNumber?.toString() ?? "")
+  ).timestamp;
   return {
-    hash : transaction.hash,
-    from : transaction.from,
-    to : transaction.to,
-    timestamp : timestamp,
-    type : type
-  }
+    hash: transaction.hash,
+    from: transaction.from,
+    to: transaction.to,
+    timestamp: timestamp,
+    type: type,
+  };
 };
