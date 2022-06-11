@@ -1,15 +1,8 @@
 import { RequestHandler } from "express";
 import Web3 from "web3";
 import { ErrorResponse, SuccessResponse } from "../utils/base_response";
-import * as bep20AbiJsonRaw from "../utils/interfaces/bep20.abi.json";
-import { AbiInput, AbiItem } from "web3-utils";
-import {
-  getTypeOfTransaction,
-  getWeb3Instance,
-  processTransaction,
-} from "../utils/utils";
-import { Transaction, TransactionReceipt } from "web3-core";
-import { P } from "pino";
+import { getWeb3Instance, processTransaction } from "../utils/utils";
+import { Transaction } from "web3-core";
 import log from "../utils/logger";
 import axios from "axios";
 
@@ -78,20 +71,18 @@ export const getHistoryTransaction: RequestHandler = async (req, res) => {
       log.error(e);
     }
 
-    let processData :Promise<Transaction | null>[] = []
-    var func = async (hash : string) : Promise<Transaction | null> => {
-      try{
-        return await web3.eth.getTransaction(hash)
-      }catch(e:any) {
-        return null
+    let processData: Promise<Transaction | null>[] = [];
+    var func = async (hash: string): Promise<Transaction | null> => {
+      try {
+        return await web3.eth.getTransaction(hash);
+      } catch (e: any) {
+        return null;
       }
-    }
+    };
     listHash.forEach((hash) => {
-      processData.push(func(hash))
-    })
-    let transactions = await Promise.all(
-      processData
-    );
+      processData.push(func(hash));
+    });
+    let transactions = await Promise.all(processData);
 
     transactions = transactions.filter(
       (transaction): transaction is Transaction => {
@@ -103,9 +94,9 @@ export const getHistoryTransaction: RequestHandler = async (req, res) => {
         return processTransaction(address, transaction!);
       })
     );
-    lastResult = lastResult.sort(function(x :any, y : any){
+    lastResult = lastResult.sort(function (x: any, y: any) {
       return Number(y.timestamp) - Number(x.timestamp);
-  })
+    });
     return res
       .status(200)
       .send(new SuccessResponse("Success", res.statusCode, lastResult));
