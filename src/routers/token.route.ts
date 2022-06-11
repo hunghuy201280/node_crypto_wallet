@@ -19,7 +19,7 @@ router.post("/import_token", importWalletTokens);
 router.post("/swap", swapToken);
 router.get("/available_tokens", getAvailableTokens);
 router.post("/import_available_tokens", importAvailableTokens);
-router.post("/sendToken", sendToken);
+router.post("/send", sendToken);
 router.get('/valid/:tokenAddress', getValidTokenAddress);
 
 export default router;

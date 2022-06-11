@@ -6,6 +6,7 @@ import * as k from "../utils/constants";
 import * as bip39 from "bip39";
 import Web3 from "web3";
 import { getWeb3Instance } from "../utils/utils";
+import { TransactionType } from "../types/enums";
 export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
   try {
     const privateKey = req.body.privateKey;
@@ -80,47 +81,90 @@ export const importWalletFromMnemonic: RequestHandler = async (req, res) => {
   }
 };
 
-export const getWalletInfo : RequestHandler = async (req,res) => {
+export const getWalletInfo: RequestHandler = async (req, res) => {
   try {
     const { address } = req.params;
-    if(!Web3.utils.isAddress(address)) {
+    if (!Web3.utils.isAddress(address)) {
       throw "Invalid wallet address";
     }
     const web3 = getWeb3Instance();
-    const balance = await web3.eth.getBalance(address)
+    const balance = await web3.eth.getBalance(address);
 
-    return res.status(200).send(new SuccessResponse('Success', res.statusCode,{
-      symbol : 'BNB',
-      address : "",
-      decimal : 0,
-      balance : Number(Web3.utils.fromWei(balance)),
-    }));
-    
+    return res.status(200).send(
+      new SuccessResponse("Success", res.statusCode, {
+        symbol: "BNB",
+        address: "",
+        decimal: 0,
+        balance: Number(Web3.utils.fromWei(balance)),
+      })
+    );
   } catch (err: any) {
     console.log(err);
     return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
   }
-}
+};
 
-export const getWalletValidAddress : RequestHandler = async (req,res) => {
+export const getWalletValidAddress: RequestHandler = async (req, res) => {
   try {
     const { address } = req.params;
-    
-    if( !Web3.utils.isAddress(address)) {
-      throw 'Address is not valid'  
+
+    if (!Web3.utils.isAddress(address)) {
+      throw "Address is not valid";
     }
 
-    const web3 = getWeb3Instance()
-    const code =await web3.eth.getCode(address) 
-    
-    return res.status(200).send(new SuccessResponse('Success', res.statusCode,{
-      address : address,
-      isValid : code === '0x' ,
-    }));
-    
-    
+    const web3 = getWeb3Instance();
+    const code = await web3.eth.getCode(address);
+
+    return res.status(200).send(
+      new SuccessResponse("Success", res.statusCode, {
+        address: address,
+        isValid: code === "0x",
+      })
+    );
   } catch (err: any) {
     console.log(err);
     return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
   }
-}
+};
+
+export const sendBalance: RequestHandler = async (req, res) => {
+  try {
+    const { fromAddress, toAddress, value, fromPrivateKey } = req.body;
+
+    if (
+      !Web3.utils.isAddress(fromAddress) ||
+      !Web3.utils.isAddress(toAddress)
+    ) {
+      throw "Address is not valid";
+    }
+
+    const web3 = getWeb3Instance();
+    const nonce = await web3.eth.getTransactionCount(fromAddress, "latest");
+    const data = {
+      from: fromAddress,
+      gas: Web3.utils.toHex(100000),
+      to: toAddress,
+      value: Web3.utils.toWei(value.toString()),
+      nonce: nonce,
+    };
+    const signedTx = await web3.eth.accounts.signTransaction(data, fromPrivateKey);
+    const result = await web3.eth.sendSignedTransaction(
+      signedTx.rawTransaction!
+    );
+    const timestamp = (
+      await web3.eth.getBlock(result.blockNumber?.toString() ?? "")
+    ).timestamp;
+    return res.status(200).send(
+      new SuccessResponse("Success", res.statusCode, {
+        hash: result.transactionHash,
+        from: result.from,
+        to: result.to,
+        timestamp: timestamp,
+        type: TransactionType.WITHDRAW,
+      })
+    );
+  } catch (err: any) {
+    console.log(err);
+    return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
+  }
+};

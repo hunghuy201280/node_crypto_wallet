@@ -5,10 +5,12 @@ import {
   createWallet,
   getWalletInfo,
   getWalletValidAddress,
+  sendBalance,
 } from "../controllers/wallet.controller";
 
 const router = Router();
 
+router.post("/send", sendBalance);
 router.get('/info/:address',getWalletInfo);
 router.get('/valid/:address',getWalletValidAddress);
 router.post("/verify_private", importWalletFromPrivateKey);
