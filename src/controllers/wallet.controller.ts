@@ -95,6 +95,8 @@ export const getWalletInfo: RequestHandler = async (req, res) => {
         symbol: "BNB",
         address: "",
         decimal: 0,
+        imageUrl:
+          "https://icons.iconarchive.com/icons/cjdowner/cryptocurrency-flat/512/Binance-Coin-BNB-icon.png",
         balance:balance,
         amount : balance * await getPriceOfBalance()
       })
