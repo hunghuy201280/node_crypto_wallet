@@ -36,15 +36,17 @@ export const getHashDetail: RequestHandler = async (req, res) => {
 
 export const getHistoryTransaction: RequestHandler = async (req, res) => {
   try {
-    const { address } = req.query;
-    if (typeof address !== "string" || !Web3.utils.isAddress(address))
+    let { address, page,  pageSize   } = req.query;
+    if(!page) page = '1'
+    if(!pageSize) pageSize = '15'
+    if (!address || typeof address !== "string" || !Web3.utils.isAddress(address?.toString()))
       throw "Params not correct";
     const web3 = getWeb3Instance();
     let listHash: string[] = [];
     // Fetch api for history transaction
     try {
       const resHisotry = await axios.get(
-        `${process.env.BSC_URL}/?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=30&sort=asc&apikey=${process.env.BSC_API_KEY}`
+        `${process.env.BSC_URL}/?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=${page}&offset=${pageSize}&sort=desc&apikey=${process.env.BSC_API_KEY}`
       );
       const result = ((resHisotry.data as any)["result"] as any[]).map(
         (body) => {
@@ -59,7 +61,7 @@ export const getHistoryTransaction: RequestHandler = async (req, res) => {
     // Fetch api for bep20 token transaction
     try {
       const resHisotry = await axios.get(
-        `${process.env.BSC_URL}/?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=1&offset=30&sort=asc&apikey=${process.env.BSC_API_KEY}`
+        `${process.env.BSC_URL}/?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=${page}&offset=${pageSize}&sort=desc&apikey=${process.env.BSC_API_KEY}`
       );
       const result = ((resHisotry.data as any)["result"] as any[]).map(
         (body) => {
@@ -91,7 +93,7 @@ export const getHistoryTransaction: RequestHandler = async (req, res) => {
     );
     let lastResult = await Promise.all(
       transactions.map((transaction) => {
-        return processTransaction(address, transaction!);
+        return processTransaction(address!.toString(), transaction!);
       })
     );
     lastResult = lastResult.sort(function (x: any, y: any) {
