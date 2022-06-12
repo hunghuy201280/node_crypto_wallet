@@ -3,10 +3,15 @@ import { RequestHandler } from "express";
 import * as ethers from "ethers";
 import { ErrorResponse, SuccessResponse } from "../utils/base_response";
 import * as k from "../utils/constants";
+import { AbiItem } from "web3-utils";
 import * as bip39 from "bip39";
 import Web3 from "web3";
 import { getPriceOfBalance, getWeb3Instance } from "../utils/utils";
 import { TransactionType } from "../types/enums";
+import * as nftAbiJsonRaw from "../utils/interfaces/nft.abi.json";
+
+const nftAbiJson = (nftAbiJsonRaw as any).default as AbiItem[];
+
 export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
   try {
     const privateKey = req.body.privateKey;
@@ -178,24 +183,3 @@ export const sendBalance: RequestHandler = async (req, res) => {
 };
 
 export const addAccount: RequestHandler = async (_, res) => {
-  try {
-    const { mnemonic, walletNumber } = _.body;
-
-    let wallet = ethers.Wallet.fromMnemonic(
-      mnemonic,
-      `${k.WALLET_PATH}${walletNumber}`
-    );
-    const privateKey = wallet.privateKey;
-    const address = await wallet.getAddress();
-
-    res.status(201).json(
-      new SuccessResponse("success", 201, {
-        address,
-        privateKey,
-      })
-    );
-  } catch (err: any) {
-    console.log(err);
-    res.status(500).send(new ErrorResponse(err.message, 500));
-  }
-};

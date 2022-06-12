@@ -41,7 +41,9 @@ export const getPriceOfToken = async (
   }
 };
 
-export const getPriceOfBalance = async (): Promise<number> => {
+export const getPriceOfBalance = async (
+
+): Promise<number> => {
   try {
     const web3 = getWeb3Instance();
     const fromAddress = "0x0dE8FCAE8421fc79B29adE9ffF97854a424Cad09";
