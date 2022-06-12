@@ -88,7 +88,9 @@ export const getWalletInfo: RequestHandler = async (req, res) => {
       throw "Invalid wallet address";
     }
     const web3 = getWeb3Instance();
-    const balance = Number(Web3.utils.fromWei(await web3.eth.getBalance(address)));
+    const balance = Number(
+      Web3.utils.fromWei(await web3.eth.getBalance(address))
+    );
 
     return res.status(200).send(
       new SuccessResponse("Success", res.statusCode, {
@@ -97,8 +99,8 @@ export const getWalletInfo: RequestHandler = async (req, res) => {
         decimal: 0,
         imageUrl:
           "https://icons.iconarchive.com/icons/cjdowner/cryptocurrency-flat/512/Binance-Coin-BNB-icon.png",
-        balance:balance,
-        amount : balance * await getPriceOfBalance()
+        balance: balance,
+        amount: balance * (await getPriceOfBalance()),
       })
     );
   } catch (err: any) {
@@ -150,7 +152,10 @@ export const sendBalance: RequestHandler = async (req, res) => {
       value: Web3.utils.toWei(value.toString()),
       nonce: nonce,
     };
-    const signedTx = await web3.eth.accounts.signTransaction(data, fromPrivateKey);
+    const signedTx = await web3.eth.accounts.signTransaction(
+      data,
+      fromPrivateKey
+    );
     const result = await web3.eth.sendSignedTransaction(
       signedTx.rawTransaction!
     );
@@ -169,5 +174,28 @@ export const sendBalance: RequestHandler = async (req, res) => {
   } catch (err: any) {
     console.log(err);
     return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
+  }
+};
+
+export const addAccount: RequestHandler = async (_, res) => {
+  try {
+    const { mnemonic, walletNumber } = _.body;
+
+    let wallet = ethers.Wallet.fromMnemonic(
+      mnemonic,
+      `${k.WALLET_PATH}${walletNumber}`
+    );
+    const privateKey = wallet.privateKey;
+    const address = await wallet.getAddress();
+
+    res.status(201).json(
+      new SuccessResponse("success", 201, {
+        address,
+        privateKey,
+      })
+    );
+  } catch (err: any) {
+    console.log(err);
+    res.status(500).send(new ErrorResponse(err.message, 500));
   }
 };

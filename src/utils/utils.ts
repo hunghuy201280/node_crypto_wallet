@@ -41,11 +41,10 @@ export const getPriceOfToken = async (
   }
 };
 
-export const getPriceOfBalance = async (
-): Promise<number> => {
+export const getPriceOfBalance = async (): Promise<number> => {
   try {
     const web3 = getWeb3Instance();
-    const fromAddress = '0x0dE8FCAE8421fc79B29adE9ffF97854a424Cad09';
+    const fromAddress = "0x0dE8FCAE8421fc79B29adE9ffF97854a424Cad09";
     const toAddress = "0x7afd064DaE94d73ee37d19ff2D264f5A2903bBB0";
     const pancakeSwapRoute = new web3.eth.Contract(
       pancakeSwapRouteAbiJson,
@@ -70,7 +69,8 @@ export const getTypeOfTransaction = async (
   const method = dataDecoder["method"]?.toLowerCase();
   if (!method) {
     if (transaction.input == "0x") {
-      if (transaction.from === address) return TransactionType.WITHDRAW;
+      if (transaction.from.toLowerCase() === address.toLowerCase())
+        return TransactionType.WITHDRAW;
       else return TransactionType.DEPOSIT;
     }
     return TransactionType.UNDEFINED;
@@ -81,7 +81,8 @@ export const getTypeOfTransaction = async (
     case method.includes("swap"):
       return TransactionType.SWAP;
     case method.includes("transfer"):
-      if (transaction.from === address) return TransactionType.WITHDRAW;
+      if (transaction.from.toLowerCase() === address.toLowerCase())
+        return TransactionType.WITHDRAW;
       else return TransactionType.DEPOSIT;
     default:
       return TransactionType.UNDEFINED;
