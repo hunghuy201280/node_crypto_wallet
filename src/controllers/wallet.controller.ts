@@ -11,9 +11,9 @@ import { TransactionType } from "../types/enums";
 import * as nftAbiJsonRaw from "../utils/interfaces/nft.abi.json";
 import { CHAIN_ID } from "../utils/constants";
 import log from "../utils/logger";
+import axios from "axios";
 
-const nftAbiJson = (nftAbiJsonRaw as any)
-  .default as AbiItem[];
+const nftAbiJson = (nftAbiJsonRaw as any).default as AbiItem[];
 
 export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
   try {
@@ -96,7 +96,9 @@ export const getWalletInfo: RequestHandler = async (req, res) => {
       throw "Invalid wallet address";
     }
     const web3 = getWeb3Instance();
-    const balance = Number(Web3.utils.fromWei(await web3.eth.getBalance(address)));
+    const balance = Number(
+      Web3.utils.fromWei(await web3.eth.getBalance(address))
+    );
 
     return res.status(200).send(
       new SuccessResponse("Success", res.statusCode, {
@@ -105,8 +107,8 @@ export const getWalletInfo: RequestHandler = async (req, res) => {
         decimal: 0,
         imageUrl:
           "https://icons.iconarchive.com/icons/cjdowner/cryptocurrency-flat/512/Binance-Coin-BNB-icon.png",
-        balance:balance,
-        amount : balance * await getPriceOfBalance()
+        balance: balance,
+        amount: balance * (await getPriceOfBalance()),
       })
     );
   } catch (err: any) {
@@ -158,7 +160,10 @@ export const sendBalance: RequestHandler = async (req, res) => {
       value: Web3.utils.toWei(value.toString()),
       nonce: nonce,
     };
-    const signedTx = await web3.eth.accounts.signTransaction(data, fromPrivateKey);
+    const signedTx = await web3.eth.accounts.signTransaction(
+      data,
+      fromPrivateKey
+    );
     const result = await web3.eth.sendSignedTransaction(
       signedTx.rawTransaction!
     );
@@ -185,45 +190,69 @@ export const getNftOwner: RequestHandler = async (req, res) => {
     const { address, collections } = req.query;
     let collectionArray: string[] = [];
     if (collections)
-    collectionArray = collections
+      collectionArray = collections
         .toString()
         .split(",")
         .filter((tk) => Web3.utils.isAddress(tk ?? "", CHAIN_ID));
-    if (typeof address !== 'string' || !Web3.utils.isAddress(address?.toString() ?? "", CHAIN_ID)) {
+    if (
+      typeof address !== "string" ||
+      !Web3.utils.isAddress(address?.toString() ?? "", CHAIN_ID)
+    ) {
       throw "Invalid wallet address";
     }
 
     const web3 = getWeb3Instance();
     const result = [];
-    for(let collection of collectionArray){
-      try{
+    for (let collection of collectionArray) {
+      try {
         const nftContract = new web3.eth.Contract(nftAbiJson, collection);
-        const events = await nftContract.getPastEvents('Transfer', {
-            filter: {
-                from: '0x0000000000000000000000000000000000000000',
-                to: address,
-            },
-            fromBlock: 0
-        })
-        
-        
+        const name = await nftContract.methods.name().call();
+        const events = await nftContract.getPastEvents("Transfer", {
+          filter: {
+            from: "0x0000000000000000000000000000000000000000",
+            to: address,
+          },
+          fromBlock: 0,
+        });
+
+        const list721: {
+          tokenId: string;
+          name: string;
+          image: string | undefined;
+          description: string | undefined;
+        }[] = [];
+        await Promise.all(
+          events.map(async (event) => {
+            try {
+              const link = await nftContract.methods
+                .tokenURI(event.returnValues.tokenId)
+                .call();
+              const data = await axios.get(link);
+              const {name , image, description} = data.data
+              list721.push({
+                name : name,
+                image : image,
+                description : description,
+                tokenId: event.returnValues.tokenId,
+              });
+            } catch (e) {}
+          })
+        );
+        console.log(list721);
+
         result.push({
           address: collection,
-          nfts : events.map( event => {
-            return event.returnValues.tokenId
-          })
-        })
-        
-      }
-      catch(e){
+          name: name,
+          items : list721,
+        });
+      } catch (e) {
         log.error(e);
       }
     }
-    
 
-    return res.status(200).send(
-      new SuccessResponse("Success", res.statusCode,result)
-    );
+    return res
+      .status(200)
+      .send(new SuccessResponse("Success", res.statusCode, result));
   } catch (err: any) {
     log.error(err);
     return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
