@@ -42,6 +42,7 @@ export const getPriceOfToken = async (
 };
 
 export const getPriceOfBalance = async (
+
 ): Promise<number> => {
   try {
     const web3 = getWeb3Instance();

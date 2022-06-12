@@ -6,6 +6,7 @@ import morganBody from "morgan-body";
 import tokenRouter from "./routers/token.route";
 import walletRouter from "./routers/wallet.route";
 import transactionRouter from "./routers/transaction.route";
+import collectionRouter from "./routers/collection.route";
 import { AppDataSource } from "./db/db";
 const app = express();
 morganBody(app);
@@ -17,6 +18,7 @@ AppDataSource.initialize()
     app.use("/wallet", walletRouter);
     app.use("/token", tokenRouter);
     app.use("/transaction", transactionRouter);
+    app.use("/collection", collectionRouter);
 
     app.get("/", (_, res) => {
       res.send("OK");
