@@ -15,6 +15,7 @@ import { getPriceOfToken, getWeb3Instance } from "../utils/utils";
 import { CHAIN_ID, V3_SWAP_ROUTER_ADDRESS } from "../utils/constants";
 import log from "../utils/logger";
 import { In } from "typeorm";
+import { TransactionType } from "../types/enums";
 
 const bep20AbiJson = (bep20AbiJsonRaw as any).default as AbiItem[];
 
@@ -361,7 +362,7 @@ export const sendToken: RequestHandler = async (req, res) => {
       token.demical = decimals;
       await tokenRepo.save(token);
     }
-
+    
     const amount = Web3.utils.toHex(Web3.utils.toWei(value.toString()));
     const data = contract.methods.transfer(toAddress, amount).encodeABI();
 
@@ -379,16 +380,23 @@ export const sendToken: RequestHandler = async (req, res) => {
     const result = await web3.eth.sendSignedTransaction(
       signedTransaction.rawTransaction!
     );
+    const timestamp = (
+      await web3.eth.getBlock(result.blockNumber?.toString() ?? "")
+    ).timestamp;
     res.status(200).send(
-      new SuccessResponse("Import Tokens Success", res.statusCode, {
-        result,
+      new SuccessResponse("Send Token Success", res.statusCode, {
+        hash: result.transactionHash,
+        from: result.from,
+        to: result.to,
+        timestamp: timestamp,
+        type: TransactionType.WITHDRAW,
       })
     );
   } catch (e: any) {
     log.error(e);
     res
       .status(400)
-      .send(new ErrorResponse("Import Tokens Failure", res.statusCode));
+      .send(new ErrorResponse("Send Token Failure", res.statusCode));
   }
 };
 
