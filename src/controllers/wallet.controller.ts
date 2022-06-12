@@ -90,32 +90,41 @@ export const getWalletInfo: RequestHandler = async (req, res) => {
     const web3 = getWeb3Instance();
     const balance = await web3.eth.getBalance(address);
 
+    return res.status(200).send(
+      new SuccessResponse("Success", res.statusCode, {
         symbol: "BNB",
+        balance: parseFloat(Web3.utils.fromWei(balance)),
+        address: "",
+        decimal: 0,
+        imageUrl:
+          "https://icons.iconarchive.com/icons/cjdowner/cryptocurrency-flat/512/Binance-Coin-BNB-icon.png",
+      })
+    );
   } catch (err: any) {
     console.log(err);
     return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
   }
 };
 
-export const getWalletValidAddress : RequestHandler = async (req,res) => {
+export const getWalletValidAddress: RequestHandler = async (req, res) => {
   try {
     const { address } = req.params;
-    
-    if( !Web3.utils.isAddress(address)) {
-      throw 'Address is not valid'  
+
+    if (!Web3.utils.isAddress(address)) {
+      throw "Address is not valid";
     }
 
-    const web3 = getWeb3Instance()
-    const code =await web3.eth.getCode(address) 
-    
-    return res.status(200).send(new SuccessResponse('Success', res.statusCode,{
-      address : address,
-      isValid : code === '0x' ,
-    }));
-    
-    
+    const web3 = getWeb3Instance();
+    const code = await web3.eth.getCode(address);
+
+    return res.status(200).send(
+      new SuccessResponse("Success", res.statusCode, {
+        address: address,
+        isValid: code === "0x",
+      })
+    );
   } catch (err: any) {
     console.log(err);
     return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
   }
-}
+};
