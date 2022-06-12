@@ -86,6 +86,34 @@ export const getNftOwner: RequestHandler = async (req, res) => {
   }
 };
 
+export const getInfoCollection: RequestHandler = async (req, res) => {
+  try {
+    const { address } = req.params;
+    if (
+      typeof address !== "string" ||
+      !Web3.utils.isAddress(address?.toString() ?? "", CHAIN_ID)
+    ) {
+      throw "Invalid wallet address";
+    }
+
+    const web3 = getWeb3Instance();
+    const nftContract = new web3.eth.Contract(nftAbiJson, address);
+    const name = await nftContract.methods.name().call();
+    const symbol = await nftContract.methods.symbol().call();
+
+    return res.status(200).send(
+      new SuccessResponse("Success", res.statusCode, {
+        address: address,
+        name: name,
+        symbol: symbol,
+      })
+    );
+  } catch (err: any) {
+    log.error(err);
+    return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
+  }
+};
+
 export const getErc721ValidAddress: RequestHandler = async (req, res) => {
   try {
     const { address } = req.params;
@@ -95,8 +123,11 @@ export const getErc721ValidAddress: RequestHandler = async (req, res) => {
     }
 
     const web3 = getWeb3Instance();
-    const validator = new ERC721Validator(web3,'0x7afd064DaE94d73ee37d19ff2D264f5A2903bBB0');
-     const result = await validator.basic(2, address);  
+    const validator = new ERC721Validator(
+      web3,
+      "0x7afd064DaE94d73ee37d19ff2D264f5A2903bBB0"
+    );
+    const result = await validator.basic(2, address);
 
     return res.status(200).send(
       new SuccessResponse("Success", res.statusCode, {
