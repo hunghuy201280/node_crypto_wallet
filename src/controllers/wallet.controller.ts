@@ -218,6 +218,7 @@ export const getNftOwner: RequestHandler = async (req, res) => {
         const list721: {
           tokenId: string;
           name: string;
+          addressOwner : string,
           image: string | undefined;
           description: string | undefined;
         }[] = [];
@@ -228,12 +229,13 @@ export const getNftOwner: RequestHandler = async (req, res) => {
                 .tokenURI(event.returnValues.tokenId)
                 .call();
               const data = await axios.get(link);
-              const {name , image, description} = data.data
+              const {name , image, description,addressOwner} = data.data
               list721.push({
                 name : name,
                 image : image,
                 description : description,
                 tokenId: event.returnValues.tokenId,
+                addressOwner : addressOwner,
               });
             } catch (e) {}
           })
