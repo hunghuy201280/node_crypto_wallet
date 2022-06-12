@@ -183,3 +183,24 @@ export const sendBalance: RequestHandler = async (req, res) => {
 };
 
 export const addAccount: RequestHandler = async (_, res) => {
+  try {
+    const { mnemonic, walletNumber } = _.body;
+
+    let wallet = ethers.Wallet.fromMnemonic(
+      mnemonic,
+      `${k.WALLET_PATH}${walletNumber}`
+    );
+    const privateKey = wallet.privateKey;
+    const address = await wallet.getAddress();
+
+    res.status(201).json(
+      new SuccessResponse("success", 201, {
+        address,
+        privateKey,
+      })
+    );
+  } catch (err: any) {
+    console.log(err);
+    res.status(500).send(new ErrorResponse(err.message, 500));
+  }
+};
