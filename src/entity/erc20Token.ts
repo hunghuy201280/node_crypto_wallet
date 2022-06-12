@@ -17,7 +17,7 @@ export class ERC20Token {
   @Column({
     name: "token_decimal",
   })
-  demical: number;
+  decimal: number;
 
   @Column({
     name: "image_url",

@@ -28,9 +28,29 @@ export const getPriceOfToken = async (
       pancakeSwapRouteAbiJson,
       PANCAKESWAP_ROUTE_ADDRESS
     );
-    if (fromAddress == toAddress) {
+    if (fromAddress === toAddress) {
       return balance;
     }
+    const amountOut = await pancakeSwapRoute.methods
+      .getAmountsOut(web3.utils.toWei("1", "ether"), [fromAddress, toAddress])
+      .call();
+    return Number(web3.utils.fromWei(amountOut[1]));
+  } catch (e: any) {
+    log.error(e);
+    return 0;
+  }
+};
+
+export const getPriceOfBalance = async (
+): Promise<number> => {
+  try {
+    const web3 = getWeb3Instance();
+    const fromAddress = '0x0dE8FCAE8421fc79B29adE9ffF97854a424Cad09';
+    const toAddress = "0x7afd064DaE94d73ee37d19ff2D264f5A2903bBB0";
+    const pancakeSwapRoute = new web3.eth.Contract(
+      pancakeSwapRouteAbiJson,
+      PANCAKESWAP_ROUTE_ADDRESS
+    );
     const amountOut = await pancakeSwapRoute.methods
       .getAmountsOut(web3.utils.toWei("1", "ether"), [fromAddress, toAddress])
       .call();

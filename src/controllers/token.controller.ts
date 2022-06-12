@@ -101,7 +101,7 @@ export const importWalletTokens: RequestHandler = async (req, res) => {
         token = new ERC20Token();
         token.address = tokenAddress;
         token.symbol = symbol;
-        token.demical = decimals;
+        token.decimal = decimals;
 
         await tokenRepo.save(token);
       }
@@ -155,7 +155,7 @@ export const importAvailableTokens: RequestHandler = async (req, res) => {
           token = new ERC20Token();
           token.address = tokenAddress;
           token.symbol = symbol;
-          token.demical = decimals;
+          token.decimal = decimals;
           await tokenRepo.save(token);
         }
       } catch (e: any) {
@@ -200,7 +200,7 @@ export const getDetailOfToken: RequestHandler = async (req, res) => {
       token = new ERC20Token();
       token.address = tokenAddress;
       token.symbol = symbol;
-      token.demical = decimals;
+      token.decimal = decimals;
       await tokenRepo.save(token);
       return res
         .status(200)
@@ -359,7 +359,7 @@ export const sendToken: RequestHandler = async (req, res) => {
       token = new ERC20Token();
       token.address = tokenAddress;
       token.symbol = symbol;
-      token.demical = decimals;
+      token.decimal = decimals;
       await tokenRepo.save(token);
     }
     

@@ -5,7 +5,7 @@ import { ErrorResponse, SuccessResponse } from "../utils/base_response";
 import * as k from "../utils/constants";
 import * as bip39 from "bip39";
 import Web3 from "web3";
-import { getWeb3Instance } from "../utils/utils";
+import { getPriceOfBalance, getWeb3Instance } from "../utils/utils";
 import { TransactionType } from "../types/enums";
 export const importWalletFromPrivateKey: RequestHandler = async (req, res) => {
   try {
@@ -88,14 +88,15 @@ export const getWalletInfo: RequestHandler = async (req, res) => {
       throw "Invalid wallet address";
     }
     const web3 = getWeb3Instance();
-    const balance = await web3.eth.getBalance(address);
+    const balance = Number(Web3.utils.fromWei(await web3.eth.getBalance(address)));
 
     return res.status(200).send(
       new SuccessResponse("Success", res.statusCode, {
         symbol: "BNB",
         address: "",
         decimal: 0,
-        balance: Number(Web3.utils.fromWei(balance)),
+        balance:balance,
+        amount : balance * await getPriceOfBalance()
       })
     );
   } catch (err: any) {
