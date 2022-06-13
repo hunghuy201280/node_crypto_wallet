@@ -201,28 +201,25 @@ export const transferNFT: RequestHandler = async (req, res) => {
     const result = await web3.eth.sendSignedTransaction(
       signedTx.rawTransaction!
     );
-    
-    let timestamp = 0
-    try{
-      timestamp = (
-        await web3.eth.getBlock(result.blockNumber?.toString() ?? "")
-      ).timestamp;
-    }catch(e) {
-        
-    }
-    
 
-    return res
-      .status(200)
-      .send(
-        new SuccessResponse("Success", res.statusCode, {
-          hash: result.transactionHash,
-          from: result.from,
-          to: result.to,
-          timestamp: timestamp,
-          type: TransactionType.WITHDRAW,
-        })
+    let timestamp = 0;
+    try {
+      timestamp = parseInt(
+        (
+          await web3.eth.getBlock(result.blockNumber?.toString() ?? "")
+        ).timestamp.toString()
       );
+    } catch (e) {}
+
+    return res.status(200).send(
+      new SuccessResponse("Success", res.statusCode, {
+        hash: result.transactionHash,
+        from: result.from,
+        to: result.to,
+        timestamp: timestamp,
+        type: TransactionType.WITHDRAW,
+      })
+    );
   } catch (err: any) {
     console.log(err);
     return res.status(400).send(new ErrorResponse(err.message, res.statusCode));
