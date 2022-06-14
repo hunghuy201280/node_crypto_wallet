@@ -380,9 +380,15 @@ export const sendToken: RequestHandler = async (req, res) => {
     const result = await web3.eth.sendSignedTransaction(
       signedTransaction.rawTransaction!
     );
-    const timestamp = (
-      await web3.eth.getBlock(result.blockNumber?.toString() ?? "")
-    ).timestamp;
+    let timestamp = 0;
+    try {
+      timestamp = parseInt(
+        (
+          await web3.eth.getBlock(result.blockNumber?.toString() ?? "")
+        ).timestamp.toString()
+      );
+    } catch (e) {}
+    
     res.status(200).send(
       new SuccessResponse("Send Token Success", res.statusCode, {
         hash: result.transactionHash,
