@@ -204,9 +204,10 @@ export const transferNFT: RequestHandler = async (req, res) => {
 
     let timestamp = 0;
     try {
-      timestamp = Number(
-        (await web3.eth.getBlock(result.blockNumber?.toString() ?? ""))
-          .timestamp
+      timestamp = parseInt(
+        (
+          await web3.eth.getBlock(result.blockNumber?.toString() ?? "")
+        ).timestamp.toString()
       );
     } catch (e) {}
 
